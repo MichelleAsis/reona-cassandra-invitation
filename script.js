@@ -15,6 +15,7 @@ const rsvpStatus = document.getElementById("success");
 const rsvpFrame = document.getElementById("rsvp-response-frame");
 
 let submissionPending = false;
+let rsvpTimeout;
 
 function showRsvpStatus(message, isError = false) {
   rsvpStatus.textContent = message;
@@ -22,41 +23,86 @@ function showRsvpStatus(message, isError = false) {
   rsvpStatus.style.display = "block";
 }
 
+function showRsvpPopup(message) {
+  const popup = document.getElementById("rsvp-popup");
+  const popupMessage = document.getElementById("rsvp-popup-message");
+
+  popupMessage.textContent = message;
+  popup.classList.add("show");
+
+  clearTimeout(window.rsvpPopupTimer);
+
+  window.rsvpPopupTimer = setTimeout(() => {
+    popup.classList.remove("show");
+  }, 2000);
+}
+
 rsvpForm.addEventListener("submit", function(event) {
   event.preventDefault();
 
   if (!rsvpForm.reportValidity()) return;
+  if (submissionPending) return;
 
   const button = rsvpForm.querySelector('button[type="submit"]');
 
-  if (submissionPending) return;
+  const attendance = rsvpForm.querySelector(
+    'input[name="attendance"]:checked'
+  );
+
+  if (!attendance) return;
+
+  const isAttending = attendance.value.toLowerCase().includes("yes");
+
+  const successMessage = isAttending
+    ? "We're excited to bond with you! 💗"
+    : "Alright! Take care! 🦋";
 
   submissionPending = true;
+
   button.disabled = true;
   button.textContent = "Sending your reply...";
 
-  showRsvpStatus("Sending your RSVP. Please wait...");
+
+  // Listen for the Google Apps Script response
+  const handleResponse = () => {
+    if (!submissionPending) return;
+
+    clearTimeout(rsvpTimeout);
+
+    submissionPending = false;
+
+    rsvpStatus.style.display = "none";
+
+    button.disabled = false;
+    button.textContent = "Send my response ✧";
+
+    showRsvpPopup(successMessage);
+  };
+
+  rsvpFrame.addEventListener("load", handleResponse, { once: true });
 
   rsvpForm.action = RSVP_ENDPOINT;
   rsvpForm.method = "POST";
   rsvpForm.target = "rsvp-response-frame";
 
-  // Submit without fetch or CORS access
   HTMLFormElement.prototype.submit.call(rsvpForm);
 
-  // Do not claim success just because the form was submitted.
-  // Cross-origin iframe responses cannot reliably confirm the save.
-  setTimeout(() => {
+  // Fallback if the response takes too long
+  rsvpTimeout = setTimeout(() => {
     if (submissionPending) {
+      rsvpFrame.removeEventListener("load", handleResponse);
+
+      submissionPending = false;
+
       showRsvpStatus(
-        "Your response was sent. Please contact the host if you are unsure whether it was received.",
-        false
+        "Your response is taking longer than expected. Please check again before resubmitting.",
+        true
       );
+
       button.disabled = false;
       button.textContent = "Send my response ✧";
-      submissionPending = false;
     }
-  }, 10000);
+  }, 30000);
 });
 
 
