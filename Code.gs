@@ -1,4 +1,4 @@
-const SPREADSHEET_ID = "PASTE_YOUR_GOOGLE_SHEET_ID_HERE";
+const SPREADSHEET_ID = "1ipbNi5kDkgZxVjZ2vVV7X-c0ibmR0hmm-zABr3QZ6OQ";
 const RESPONSE_SHEET_NAME = "RSVPs";
 
 function doPost(event) {
@@ -10,7 +10,7 @@ function doPost(event) {
 
   let lock;
   try {
-    if (!SPREADSHEET_ID || SPREADSHEET_ID === "PASTE_YOUR_GOOGLE_SHEET_ID_HERE") {
+    if (!SPREADSHEET_ID || SPREADSHEET_ID === "1ipbNi5kDkgZxVjZ2vVV7X-c0ibmR0hmm-zABr3QZ6OQ") {
       throw new Error("Set SPREADSHEET_ID before deploying the RSVP service.");
     }
 
