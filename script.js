@@ -108,17 +108,17 @@ rsvpForm.addEventListener("submit", function(event) {
 
 
 const galleryPhotos=[
-  {src:"images/1.jpg",alt:"Reona Cassandra celebration photo 1"},
-  {src:"images/1-2.jpg",alt:"Reona Cassandra celebration photo 2"},
-  {src:"images/1-3.jpg",alt:"Reona Cassandra celebration photo 3"},
-  {src:"images/1-4.jpg",alt:"Reona Cassandra celebration photo 4"},
-  {src:"images/1-5.jpg",alt:"Reona Cassandra celebration photo 5"},
-  {src:"images/1-6.jpg",alt:"Reona Cassandra celebration photo 6"},
-  {src:"images/1-7.jpg",alt:"Reona Cassandra celebration photo 7"},
-  {src:"images/1-8.jpg",alt:"Reona Cassandra celebration photo 8"},
-  {src:"images/1-9.jpg",alt:"Reona Cassandra celebration photo 9"},
-  {src:"images/1-10.jpg",alt:"Reona Cassandra celebration photo 10"},
-  {src:"images/1-11.jpg",alt:"Reona Cassandra celebration photo 11"}
+  {src:"images/1.jpg",thumb:"images/gallery/1.jpg",alt:"Reona Cassandra celebration photo 1"},
+  {src:"images/1-2.jpg",thumb:"images/gallery/1-2.jpg",alt:"Reona Cassandra celebration photo 2"},
+  {src:"images/1-3.jpg",thumb:"images/gallery/1-3.jpg",alt:"Reona Cassandra celebration photo 3"},
+  {src:"images/1-4.jpg",thumb:"images/gallery/1-4.jpg",alt:"Reona Cassandra celebration photo 4"},
+  {src:"images/1-5.jpg",thumb:"images/gallery/1-5.jpg",alt:"Reona Cassandra celebration photo 5"},
+  {src:"images/1-6.jpg",thumb:"images/gallery/1-6.jpg",alt:"Reona Cassandra celebration photo 6"},
+  {src:"images/1-7.jpg",thumb:"images/gallery/1-7.jpg",alt:"Reona Cassandra celebration photo 7"},
+  {src:"images/1-8.jpg",thumb:"images/gallery/1-8.jpg",alt:"Reona Cassandra celebration photo 8"},
+  {src:"images/1-9.jpg",thumb:"images/gallery/1-9.jpg",alt:"Reona Cassandra celebration photo 9"},
+  {src:"images/1-10.jpg",thumb:"images/gallery/1-10.jpg",alt:"Reona Cassandra celebration photo 10"},
+  {src:"images/1-11.jpg",thumb:"images/gallery/1-11.jpg",alt:"Reona Cassandra celebration photo 11"}
 ];
 const gallery=document.getElementById("photo-gallery");
 const galleryStage=document.querySelector(".carousel-stage");
@@ -127,12 +127,23 @@ const lightbox=document.getElementById("photo-lightbox");
 const lightboxImage=document.getElementById("lightbox-image");
 const dots=document.getElementById("gallery-dots");
 let photoIndex=0;
+const preloadedPhotos=new Set();
+function preloadPhoto(index){
+  if(preloadedPhotos.has(index))return;
+  preloadedPhotos.add(index);
+  const image=new Image();
+  image.src=galleryPhotos[index].thumb;
+}
+function preloadAdjacentPhotos(){
+  preloadPhoto((photoIndex+1)%galleryPhotos.length);
+  preloadPhoto((photoIndex-1+galleryPhotos.length)%galleryPhotos.length);
+}
 document.getElementById("gallery-total").textContent=String(galleryPhotos.length).padStart(2,"0");
 function renderPhoto(){
   const photo=galleryPhotos[photoIndex];
   const number=String(photoIndex+1).padStart(2,"0");
-  galleryStage.style.setProperty("--photo-background",`url("${photo.src}")`);
-  galleryImage.src=photo.src;galleryImage.alt=photo.alt;
+  galleryStage.style.setProperty("--photo-background",`url("${photo.thumb}")`);
+  galleryImage.src=photo.thumb;galleryImage.alt=photo.alt;
   document.getElementById("gallery-current").textContent=number;
   document.getElementById("gallery-caption").textContent=photo.alt;
   document.getElementById("gallery-open").setAttribute("aria-label",`View photo ${photoIndex+1} full size`);
@@ -142,6 +153,7 @@ function renderPhoto(){
     if(active)dot.setAttribute("aria-current","true");else dot.removeAttribute("aria-current");
   });
   if(lightbox.open)renderLightboxPhoto();
+  preloadAdjacentPhotos();
 }
 function renderLightboxPhoto(){
   const photo=galleryPhotos[photoIndex];
